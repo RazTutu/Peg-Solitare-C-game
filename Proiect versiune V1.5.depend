@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1544473280 source:c:\users\raztu\desktop\proiect joc ip\main\joc v1.5\proiect versiune v1.5\main.cpp
+	<iostream>
+	<winbgim.h>
+	<stdlib.h>
+
