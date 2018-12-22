@@ -1,6 +1,6 @@
 #include <iostream>
 #include <winbgim.h>
-#include <graphics.h>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -85,17 +85,11 @@ int verificaButon(int x, int y)
 
 void efectButonHelp()
 {
-
     initwindow(800, 600);
     outtext("Fereastra de AJUTOR s-a deschis!");
     getch();
     closegraph();
 }
-
-
-
-
-
 
 int stanga,sus,width,height,latura,numar;
 
@@ -144,7 +138,6 @@ void deseneazaPiesa(int linia, int coloana, int Piesa)
     ymijloc=(y1+y2)/2;
     setcolor(WHITE);
     rectangle(x1,y1,x2,y2);
-    setcolor(GREEN);
     setfillstyle(SOLID_FILL,DARKGRAY);
     bar(xmijloc-20,ymijloc-20,xmijloc+20,ymijloc+20);
     setcolor(Piesa);
@@ -157,7 +150,7 @@ bool interiorCasuta(int x, int y, int x1, int y1, int x2, int y2)
     return x1<=x && x<=x2 && y1<=y && y<=y2;
 }
 
-void mutarePiesa(int Piesa)
+void mutarePiesa(int Piesa, int &numarPiese)
 {
     int linia1,coloana1,linia2,coloana2,x,y;
     int x1, y1, x2, y2;
@@ -185,7 +178,7 @@ void mutarePiesa(int Piesa)
 
                         linia2=(y-sus)/latura+1;
                         coloana2=(x-stanga)/latura+1;
-
+                        //merge in jos
                         if (Tabla[linia2][coloana2]==SPATIU && Tabla[linia1+1][coloana1] == PIESA && linia2 == linia1+2 && coloana1 == coloana2)
                         {
                             mutareCorecta=true;
@@ -195,9 +188,10 @@ void mutarePiesa(int Piesa)
                             stergePiesa(linia1+1, coloana1);
                             Tabla[linia1+1][coloana1] = SPATIU;
                             deseneazaPiesa(linia2,coloana2,Piesa);
+                            --numarPiese;
                         }
-
-                        if (Tabla[linia2][coloana2]==SPATIU && Tabla[linia1][coloana1-1] == PIESA && coloana2 == coloana1-2 && linia1 == linia2)
+                        // merge in stanga
+                        else  if (Tabla[linia2][coloana2]==SPATIU && Tabla[linia1][coloana1-1] == PIESA && coloana2 == coloana1-2 && linia1 == linia2)
                         {
                             mutareCorecta=true;
                             Tabla[linia1][coloana1]=SPATIU;
@@ -206,9 +200,10 @@ void mutarePiesa(int Piesa)
                             stergePiesa(linia1, coloana1-1);
                             Tabla[linia1][coloana1-1] = SPATIU;
                             deseneazaPiesa(linia2,coloana2,Piesa);
+                            --numarPiese;
                         }
 
-                        if (Tabla[linia2][coloana2]==SPATIU && Tabla[linia1][coloana1+1] == PIESA && coloana1 == coloana2-2 && linia1 == linia2)
+                        else if (Tabla[linia2][coloana2]==SPATIU && Tabla[linia1][coloana1+1] == PIESA && coloana1 == coloana2-2 && linia1 == linia2)
                         {
                             mutareCorecta=true;
                             Tabla[linia1][coloana1]=SPATIU;
@@ -217,10 +212,11 @@ void mutarePiesa(int Piesa)
                             stergePiesa(linia1, coloana1+1);
                             Tabla[linia1][coloana1+1] = SPATIU;
                             deseneazaPiesa(linia2,coloana2,Piesa);
+                            --numarPiese;
                         }
 
 
-                        if (Tabla[linia2][coloana2]==SPATIU && Tabla[linia1-1][coloana1] == PIESA && coloana1 == coloana2 && linia2 == linia1-2)
+                        else if (Tabla[linia2][coloana2]==SPATIU && Tabla[linia1-1][coloana1] == PIESA && coloana1 == coloana2 && linia2 == linia1-2)
                         {
                             mutareCorecta=true;
                             Tabla[linia1][coloana1]=SPATIU;
@@ -229,11 +225,14 @@ void mutarePiesa(int Piesa)
                             stergePiesa(linia1-1, coloana1);
                             Tabla[linia1-1][coloana1] = SPATIU;
                             deseneazaPiesa(linia2,coloana2,Piesa);
+                            --numarPiese;
                         }
+
                         else
                         {
-                            mutarePiesa(Piesa);
+                            return;
                         }
+
                     }
                 }
                 while (!mutareCorecta);
@@ -265,9 +264,9 @@ void matriceaDinSpate()
 
     Tabla[4][4] = 0;
 
-    for(linia = 1; linia<= numar; linia++)
+    for(linia = 0; linia<= 10; linia++)
     {
-        for(coloana = 1; coloana<= numar; coloana++)
+        for(coloana = 0; coloana<= 10; coloana++)
         {
             cout<<Tabla[linia][coloana]<<" ";
         }
@@ -319,19 +318,25 @@ void desenTabla2(int latime, int inaltime)
         }
 }
 
+    bool verificaDacaUnaLangaAlta(int Tabla[10][10]){
+
+    for(int i = 0; i<8; ++i){
+        for(int j = 0; j<8; ++j){
+            if(Tabla[i][j]==PIESA)
+                if(Tabla[i][j+1] == PIESA || Tabla[i+1][j] == PIESA || Tabla[i][j-1] == PIESA || Tabla[i-1][j] == PIESA)
+                    return true;
+        }
+    }
+
+    return false;
+    }
+
 
 void efectButonPlay()
 {
 
-    int latime, inaltime;
-
-    cout<<"Ce dimensiuni vrei sa aiba tabla? Pune latimea egala cu inaltimea!"<<'\n';
-    cout<<"Latime: ";
-    cin>>latime;
-    cout<<'\n';
-    cout<<"Inaltime: ";
-    cin>>inaltime;
-    cout<<'\n';
+    int latime = 700, inaltime = 700;
+    int numarPiese = 32;
 
     initwindow(latime, inaltime);
     matriceaDinSpate();
@@ -339,11 +344,42 @@ void efectButonPlay()
     desenTabla2(latime, inaltime);
     do
     {
-        mutarePiesa(PIESA);
+        mutarePiesa(PIESA, numarPiese);
+        if(verificaDacaUnaLangaAlta(Tabla) == false){
+        closegraph();
+
+        initwindow(400, 400);
+        outtextxy(0,0, "AI PIERDUT");
+            break;
+
+        }
 
     }
-    while (true);
+    while (numarPiese > 1  );
 
+    if(numarPiese == 1 && Tabla[4][4] == PIESA)
+    {
+
+        closegraph();
+
+        initwindow(400, 400);
+        outtextxy(0,0, "AI CASTIGAT");
+
+
+        getch();
+        closegraph();
+    }
+    else
+    {
+        closegraph();
+        initwindow(400, 400);
+        outtextxy(0,0, "AI PIERDUT");
+        Sleep(5000);
+    }
+
+    if(numarPiese > 1) {
+        cout<<"AI PIERDUT";
+    }
 
     getch();
     closegraph();
@@ -355,6 +391,7 @@ void clickApasat(int x, int y)
     switch(verificaButon(x, y))
     {
     case 0:
+
         efectButonPlay();
 
 
@@ -371,26 +408,40 @@ void clickApasat(int x, int y)
 }
 
 
-
-
-
-
-
-
 int main()
 {
-
+    // numarPiese = 32 piese. trebuie sa ramana una in mijloc
+    int z, p;
     initwindow(800, 600);
-    settextstyle(0, HORIZ_DIR,0);
+    settextstyle(0, HORIZ_DIR, 0);
     deseneazaChenar(400, 300, 280, 350); //chenar mare
     creeazaButon("Play", 400, 200, 380, 192);
     creeazaButon("Help", 400, 300, 380, 292);
     creeazaButon("Exit", 400, 400, 380, 392);
-    registermousehandler(WM_LBUTTONDOWN, clickApasat);
 
+
+
+    int x, y;
+    do
+    {
+        x = mousex();
+        y = mousey();
+        if(ismouseclick(WM_LBUTTONDOWN) && interiorCasuta(x, y, 310, 175, 490, 225))
+        {
+            clearmouseclick(WM_LBUTTONDOWN);
+            closegraph();
+            efectButonPlay();
+
+        }
+
+    }
+
+
+    while(true);
 
 
     getch();
     closegraph();
     return 0;
 }
+
