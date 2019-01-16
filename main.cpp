@@ -1,20 +1,13 @@
 #include <iostream>
 #include <winbgim.h>
-#include <stdlib.h>
+
 
 using namespace std;
 
 #define NrCasute 10
 #define SPATIU 0
 #define PIESA MAGENTA
-
-struct buton
-{
-    int x1, x2, y1, y2;
-} b[100];
-
-int indiceButon;
-
+void coordonateButoane();
 void deseneazaChenar(int x, int y, int lungime, int latime, int raza = 0)
 {
     int x1, x2, x3, x4, y1, y2, y3, y4;
@@ -28,6 +21,7 @@ void deseneazaChenar(int x, int y, int lungime, int latime, int raza = 0)
         y3 = y + latime / 2;
         x4 = x + lungime / 2;
         y4 = y + latime / 2;
+        //Aici fac de asemenea chenarul principal in care tin optiunile din meniu
         line(x1, y1, x2, y2); //sus
         line(x3, y3, x4, y4); //jos
         line(x1, y1, x3, y3); //stanga
@@ -67,26 +61,62 @@ void creeazaButon(char text[], int x, int y, int xText, int yText)
 {
     deseneazaChenar(x, y, 180, 50, 10);
     outtextxy(xText, yText, text);
-    b[indiceButon].x1 = x - 90;
-    b[indiceButon].y1 = y - 25;
-    b[indiceButon].x2 = x + 90;
-    b[indiceButon].y2 = y + 25;
-    indiceButon++;
+
+}
+void desenMeniu(){
+ // numarPiese = 32 piese. trebuie sa ramana una in mijloc
+
+    initwindow(800, 600);
+    settextstyle(0, HORIZ_DIR, 0);
+    deseneazaChenar(400, 300, 280, 350); //chenar mare
+    creeazaButon("Play", 400, 200, 380, 192);
+    creeazaButon("Help", 400, 300, 380, 292);
+    creeazaButon("Exit", 400, 400, 380, 392);
+
 }
 
-int verificaButon(int x, int y)
+bool interiorCasuta(int x, int y, int x1, int y1, int x2, int y2)
 {
-    for (int i = 0; i < indiceButon; i++)
-        if ((x >= b[i].x1 && x <= b[i].x2) && (y >= b[i].y1 && y <= b[i].y2))
-            return i;
-    return -1;
+    return x1<=x && x<=x2 && y1<=y && y<=y2;
 }
-
 
 void efectButonHelp()
 {
     initwindow(800, 600);
-    outtext("Fereastra de AJUTOR s-a deschis!");
+    settextstyle(SANS_SERIF_FONT, HORIZ_DIR, 2);
+    outtextxy(300, 30, "Bun venit pe Solitarul!");
+    outtextxy(30, 60, "Regulile jocului:");
+    outtextxy(30, 90, "Poti muta o piesa in stanga, sus, dreapta, jos, doar daca sari peste o alta piesa, iar patratica");
+    outtextxy(30, 110, "unde vei ajunge nu este ocupata de nici o piesa. Astfel, vei manca piesa peste care ai sarit.");
+    outtextxy(30, 130, "Ai mai jos niste imagini prin care poti intelege mai clar cum se joaca.");
+    readimagefile("mutareStanga.jpg", 60, 220, 330, 370);
+    outtextxy(130, 190, "Mutare la stanga");
+    readimagefile("mutareSus.jpg",430 ,220 ,700 ,370);
+    outtextxy(510, 190, "Mutare in sus");
+    readimagefile("castigaJoc.jpg", 60, 400 ,330, 590);
+    outtextxy(380, 400, "Castigi daca ramai cu o singura piesa");
+    outtextxy(380, 430, "aceasta aflandu-se pe mijlocul tablei ");
+    outtextxy(380, 460, "la finalul jocului, ca in imaginea din stanga.");
+    outtextxy(380, 490,"Daca ramai fara mutari si ai mai mult de o piesa, ");
+    outtextxy(380, 520, "sau ultima ta piesa nu este in mijloc, ai pierdut.");
+    setcolor(WHITE);
+    rectangle(600, 550, 790, 590);
+    outtextxy(633, 557, "Inapoi la meniu");
+    int reminder = 1;
+     do{
+        int x = mousex();
+        int y = mousey();
+       if(ismouseclick(WM_LBUTTONDOWN) && interiorCasuta(x, y, 600, 550, 790, 590)){
+        clearmouseclick(WM_LBUTTONDOWN);
+
+        closegraph();
+       desenMeniu();
+       coordonateButoane();
+        reminder = 0;
+
+       }
+    }
+        while(reminder!=0);
     getch();
     closegraph();
 }
@@ -145,10 +175,7 @@ void deseneazaPiesa(int linia, int coloana, int Piesa)
     fillellipse(xmijloc,ymijloc,18,15);
 }
 
-bool interiorCasuta(int x, int y, int x1, int y1, int x2, int y2)
-{
-    return x1<=x && x<=x2 && y1<=y && y<=y2;
-}
+
 
 void mutarePiesa(int Piesa, int &numarPiese)
 {
@@ -189,6 +216,7 @@ void mutarePiesa(int Piesa, int &numarPiese)
                             Tabla[linia1+1][coloana1] = SPATIU;
                             deseneazaPiesa(linia2,coloana2,Piesa);
                             --numarPiese;
+                            PlaySound(TEXT("mutareSound.wav"), NULL, SND_ASYNC);
                         }
                         // merge in stanga
                         else  if (Tabla[linia2][coloana2]==SPATIU && Tabla[linia1][coloana1-1] == PIESA && coloana2 == coloana1-2 && linia1 == linia2)
@@ -201,6 +229,7 @@ void mutarePiesa(int Piesa, int &numarPiese)
                             Tabla[linia1][coloana1-1] = SPATIU;
                             deseneazaPiesa(linia2,coloana2,Piesa);
                             --numarPiese;
+                            PlaySound(TEXT("mutareSound.wav"), NULL, SND_ASYNC);
                         }
 
                         else if (Tabla[linia2][coloana2]==SPATIU && Tabla[linia1][coloana1+1] == PIESA && coloana1 == coloana2-2 && linia1 == linia2)
@@ -213,6 +242,7 @@ void mutarePiesa(int Piesa, int &numarPiese)
                             Tabla[linia1][coloana1+1] = SPATIU;
                             deseneazaPiesa(linia2,coloana2,Piesa);
                             --numarPiese;
+                            PlaySound(TEXT("mutareSound.wav"), NULL, SND_ASYNC);
                         }
 
 
@@ -226,6 +256,7 @@ void mutarePiesa(int Piesa, int &numarPiese)
                             Tabla[linia1-1][coloana1] = SPATIU;
                             deseneazaPiesa(linia2,coloana2,Piesa);
                             --numarPiese;
+                            PlaySound(TEXT("mutareSound.wav"), NULL, SND_ASYNC);
                         }
 
                         else
@@ -323,7 +354,7 @@ void desenTabla2(int latime, int inaltime)
     for(int i = 0; i<8; ++i){
         for(int j = 0; j<8; ++j){
             if(Tabla[i][j]==PIESA)
-                if(Tabla[i][j+1] == PIESA || Tabla[i+1][j] == PIESA || Tabla[i][j-1] == PIESA || Tabla[i-1][j] == PIESA)
+                if(Tabla[i][j+1] == PIESA && Tabla[i][j+2]==SPATIU || Tabla[i+1][j] == PIESA && Tabla[i+2][j]==SPATIU || Tabla[i][j-1] == PIESA && Tabla[i][j-2]==SPATIU || Tabla[i-1][j] == PIESA && Tabla[i-2][j]==SPATIU)
                     return true;
         }
     }
@@ -339,17 +370,43 @@ void efectButonPlay()
     int numarPiese = 32;
 
     initwindow(latime, inaltime);
+
     matriceaDinSpate();
     desenTabla(latime, inaltime);
     desenTabla2(latime, inaltime);
+    setcolor(WHITE);
+
     do
     {
+
         mutarePiesa(PIESA, numarPiese);
+
         if(verificaDacaUnaLangaAlta(Tabla) == false){
         closegraph();
 
-        initwindow(400, 400);
-        outtextxy(0,0, "AI PIERDUT");
+        initwindow(600, 600);
+        readimagefile("lostImage.jpg", 0, 0, 600, 600);
+        settextstyle(0, HORIZ_DIR, 4);
+        setcolor(WHITE);
+        rectangle(190, 150, 390, 200);
+        outtextxy(130,100, "AI PIERDUT");
+        settextstyle(0, HORIZ_DIR, 0);
+        outtextxy(200,160, "Inapoi la meniu");
+        int reminder = 1;
+        do{
+        int x = mousex();
+        int y = mousey();
+       if(ismouseclick(WM_LBUTTONDOWN) && interiorCasuta(x, y, 190, 150, 390, 200)){
+        clearmouseclick(WM_LBUTTONDOWN);
+
+        closegraph();
+       desenMeniu();
+       coordonateButoane();
+        reminder = 0;
+
+       }
+    }
+        while(reminder!=0);
             break;
 
         }
@@ -362,8 +419,10 @@ void efectButonPlay()
 
         closegraph();
 
-        initwindow(400, 400);
-        outtextxy(0,0, "AI CASTIGAT");
+        initwindow(800, 800);
+        readimagefile("victory.jpg", 0, 0, 800, 800);
+        settextstyle(0, HORIZ_DIR, 3);
+        outtextxy(260,600, "AI CASTIGAT");
 
 
         getch();
@@ -372,56 +431,67 @@ void efectButonPlay()
     else
     {
         closegraph();
-        initwindow(400, 400);
-        outtextxy(0,0, "AI PIERDUT");
+        initwindow(600, 600);
+
+        settextstyle(0, HORIZ_DIR, 4);
+        readimagefile("lostImage.jpg",0,0, 600, 600);
+        outtextxy(130,100, "AI PIERDUT");
+        setcolor(WHITE);
+        rectangle(190, 150, 390, 200);
+        settextstyle(0, HORIZ_DIR, 0);
+        outtextxy(200, 160, "Inapoi la meniu");
         Sleep(5000);
+        int reminder = 1;
+        do{
+        int x = mousex();
+        int y = mousey();
+       if(ismouseclick(WM_LBUTTONDOWN) && interiorCasuta(x, y, 190, 150, 390, 200)){
+        clearmouseclick(WM_LBUTTONDOWN);
+
+        closegraph();
+       desenMeniu();
+       coordonateButoane();
+        reminder = 0;
+
+       }
+    }
+        while(reminder!=0);
     }
 
     if(numarPiese > 1) {
-        cout<<"AI PIERDUT";
+             closegraph();
+        initwindow(600, 600);
+         readimagefile("lostImage.jpg", 0, 0, 600, 600);
+        settextstyle(0, HORIZ_DIR, 4);
+
+        outtextxy(130,100, "AI PIERDUT");
+        setcolor(WHITE);
+        rectangle(190, 150, 390, 200);
+        settextstyle(0, HORIZ_DIR, 0);
+        outtextxy(200, 160, "Inapoi la meniu");
+        int reminder = 1;
+        do{
+        int x = mousex();
+        int y = mousey();
+       if(ismouseclick(WM_LBUTTONDOWN) && interiorCasuta(x, y, 190, 150, 390, 200)){
+        clearmouseclick(WM_LBUTTONDOWN);
+
+        closegraph();
+       desenMeniu();
+       coordonateButoane();
+        reminder = 0;
+
+       }
+    }
+        while(reminder!=0);
     }
 
     getch();
     closegraph();
 }
 
-
-void clickApasat(int x, int y)
-{
-    switch(verificaButon(x, y))
-    {
-    case 0:
-
-        efectButonPlay();
-
-
-
-        break;
-    case 1:
-        efectButonHelp();
-        break;
-    case 2:
-        exit(0);
-    default:
-        cout << "Ai dat click aiurea!";
-    }
-}
-
-
-int main()
-{
-    // numarPiese = 32 piese. trebuie sa ramana una in mijloc
-    int z, p;
-    initwindow(800, 600);
-    settextstyle(0, HORIZ_DIR, 0);
-    deseneazaChenar(400, 300, 280, 350); //chenar mare
-    creeazaButon("Play", 400, 200, 380, 192);
-    creeazaButon("Help", 400, 300, 380, 292);
-    creeazaButon("Exit", 400, 400, 380, 392);
-
-
-
-    int x, y;
+void coordonateButoane(){
+int x, y;
     do
     {
         x = mousex();
@@ -433,15 +503,39 @@ int main()
             efectButonPlay();
 
         }
+        if(ismouseclick(WM_LBUTTONDOWN) && interiorCasuta(x, y, 310, 275, 490, 325))
+        {
+            clearmouseclick(WM_LBUTTONDOWN);
+            closegraph();
+            efectButonHelp();
+
+
+        }
+         if(ismouseclick(WM_LBUTTONDOWN) && interiorCasuta(x, y, 310, 375, 490, 425))
+        {
+            clearmouseclick(WM_LBUTTONDOWN);
+            closegraph();
+
+
+
+        }
+
 
     }
 
 
     while(true);
+}
 
+
+
+int main()
+{
+    desenMeniu();
+    coordonateButoane();
 
     getch();
+
     closegraph();
     return 0;
 }
-
